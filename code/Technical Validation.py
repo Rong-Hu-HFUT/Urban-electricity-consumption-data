@@ -6,8 +6,7 @@ import scipy.stats as stats
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-# 读取数据
-df = pd.read_excel(r"F:\数据和代码下载\数据论文\测算-统计数据对比.xlsx")
+df = pd.read_excel(r"xlsx")
 #——————————————————————————————————————Internal consistency validation
 
 
@@ -17,10 +16,10 @@ month_names = ['January', 'February', 'March', 'April', 'May', 'June',
 import string
 
 sns.set(style="whitegrid", font_scale=1.2)
-# 设置字体
+
 plt.rcParams['font.family'] = 'Times New Roman'
 plt.rcParams['axes.unicode_minus'] = False
-# Nature 风格颜色
+
 scatter_color = "#0072B2"
 line_color = "#D55E00"
 ci_alpha = 0.25
@@ -269,14 +268,13 @@ def pval_to_star(p):
 for i, metric in enumerate(['MAE', 'RMSE', 'R2']):
     plt.figure(figsize=(8, 6))
 
-    # 箱线图，设置透明度
+
     ax = sns.boxplot(
         x='Model', y=metric, data=df, hue='Model',
         palette=palette, width=0.6, fliersize=0,
         linewidth=1.2, boxprops=dict(alpha=0.3), legend=False
     )
 
-    # 叠加散点
     for model in models:
         subset = df[df['Model'] == model]
         x_jitter = np.random.normal(loc=models.index(model), scale=0.06, size=len(subset))
@@ -349,10 +347,6 @@ df['Cluster'] = labels
 
 
 
-
-
-
-
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -415,12 +409,12 @@ handles, labels = ax.get_legend_handles_labels()
 new_labels = ['Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4']
 ax.legend(handles=handles, labels=new_labels, title=None, loc='upper right',bbox_to_anchor=(1, 0.9))
 
-# 图形美化
+
 plt.xlabel("")
 plt.ylabel("Electricity Consumption (100k MWh)")
 plt.grid(False)
 ax.set_xlim(-0.4, 11.4)
-# 调整y轴最大值
+
 ymin, ymax = ax.get_ylim()
 ax.set_ylim(ymin, ymax * 1.5)
 
