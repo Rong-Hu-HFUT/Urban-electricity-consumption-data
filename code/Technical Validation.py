@@ -6,10 +6,9 @@ import scipy.stats as stats
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import r2_score
 
-df = pd.read_excel(r"xlsx")
+df = pd.read_excel(r"Data.xlsx")
+
 #——————————————————————————————————————Internal consistency validation
-
-
 months = [str(i) for i in range(1, 13)]
 month_names = ['January', 'February', 'March', 'April', 'May', 'June',
                    'July', 'August', 'September', 'October', 'November', 'December']
@@ -232,7 +231,6 @@ plt.rcParams['xtick.labelsize'] = 17
 plt.rcParams['ytick.labelsize'] = 17
 plt.rcParams['legend.fontsize'] = 17
 plt.rcParams['text.color'] = 'black'
-# 配色与样式
 colors = {
     'Decision Tree': '#B7B7EB',
     'Linear': '#F09BA0',
@@ -301,7 +299,7 @@ for i, metric in enumerate(['MAE', 'RMSE', 'R2']):
     plt.tight_layout()
     plt.show()
 
-#-------------------------Model performance evaluation-------------------------
+#-------------------------Spatial validation-------------------------
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
@@ -351,37 +349,33 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-
+df = pd.read_excel(r"Cluster_Result.xlsx") 
 
 month_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 month_map = {f'M{i}': month_labels[i - 1] for i in range(1, 13)}
 df_renamed = df.rename(columns=month_map)
 
-
 df_melted = df_renamed.melt(id_vars=['市', 'Cluster'],
                             value_vars=month_labels,
                             var_name='Month',
                             value_name='Electricity')
 
-
 palette = {
-    0: "#FF9999",
-    1: "#FFE699",
-    2: "#D4FFCC",
-    3: "#9CE6FF",
+    0: "#FF9999",  # Cluster 1
+    1: "#FFE699",  # Cluster 2
+    2: "#D4FFCC",  # Cluster 3
+    3: "#9CE6FF",  # Cluster 4
 }
-
 
 sns.set(style="whitegrid", font_scale=1.2)
 plt.rcParams['font.family'] = 'Times New Roman'
-plt.rcParams['axes.titlesize'] = 22
-plt.rcParams['axes.labelsize'] = 22
-plt.rcParams['xtick.labelsize'] = 22
-plt.rcParams['ytick.labelsize'] = 22
-plt.rcParams['legend.fontsize'] = 22
+plt.rcParams['axes.titlesize'] = 30
+plt.rcParams['axes.labelsize'] = 30
+plt.rcParams['xtick.labelsize'] = 30
+plt.rcParams['ytick.labelsize'] = 30
+plt.rcParams['legend.fontsize'] = 30
 plt.rcParams['text.color'] = 'black'
-
 
 plt.figure(figsize=(14, 10))
 ax = sns.boxplot(
@@ -392,10 +386,9 @@ ax = sns.boxplot(
     palette=palette,
     hue_order=[0, 1, 2, 3],
     width=0.6,
-    boxprops=dict(edgecolor='#E1E1E1'),
-    showfliers=False
+    boxprops=dict(edgecolor='#E1E1E1'), 
+    showfliers=False  
 )
-
 
 quarter_colors = ['#e6f7ff', '#fff7e6', '#e6ffe6', '#f9e6ff']
 quarter_labels = ['Spring', 'Summer', 'Fall', 'Winter']
@@ -404,21 +397,74 @@ for i in range(4):
     end = start + 3
     ax.axvspan(start, end, facecolor=quarter_colors[i], alpha=0.3, zorder=0)
 
-
 handles, labels = ax.get_legend_handles_labels()
 new_labels = ['Cluster 1', 'Cluster 2', 'Cluster 3', 'Cluster 4']
-ax.legend(handles=handles, labels=new_labels, title=None, loc='upper right',bbox_to_anchor=(1, 0.9))
-
+ax.legend(handles=handles, labels=new_labels, title=None, loc='upper right',bbox_to_anchor=(1, 1))
 
 plt.xlabel("")
-plt.ylabel("Electricity Consumption (100k MWh)")
+plt.ylabel("Electricity Consumption (10$^5$ MWh)")
 plt.grid(False)
 ax.set_xlim(-0.4, 11.4)
-
 ymin, ymax = ax.get_ylim()
 ax.set_ylim(ymin, ymax * 1.5)
 
 plt.tight_layout()
 plt.show()
+
+#------------------------------  COVID19————————————————————————————
+
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+files = [
+    r"Changchun_Daily.xlsx",
+    r"Shanghai_Daily.xlsx",
+    r"Shenzhen_Daily.xlsx"
+]
+
+df_list = [pd.read_excel(f) for f in files]
+df = pd.concat(df_list, ignore_index=True)
+
+df['Day'] = pd.to_datetime(df['Day'])
+df.set_index('Day', inplace=True)
+
+lockdown_periods = {
+    "Changchun": [("2022-03-11", "2022-04-28")],
+    "Shanghai": [("2022-03-28", "2022-06-01")],
+    "Shenzhen": [("2022-03-14", "2022-03-18")]
+}
+
+cities = ["Changchun", "Shanghai", "Shenzhen"]
+
+for city in cities:
+    city_data = df[df['NAME'] == city]['Electricity']
+
+    rolling_mean = city_data.rolling(window=7).mean()
+
+    plt.figure(figsize=(12,5))
+
+    plt.plot(city_data.index, city_data, color='#CBCBF1', alpha=0.6, label='Daily Electricity')
+
+    for start, end in lockdown_periods.get(city, []):
+        plt.axvspan(pd.to_datetime(start), pd.to_datetime(end), color='#F09BA0', alpha=0.3, label='Lockdown')
+
+    plt.plot(rolling_mean.index, rolling_mean, color='#EAB883', linewidth=2, label='7-day Rolling Mean')
+
+    
+    plt.ylabel("Estimated electricity (10$^5$ MWh)", fontsize=18, fontname='Times New Roman')
+
+    plt.xticks(fontsize=18, fontname='Times New Roman', rotation=45)
+    plt.yticks(fontsize=18, fontname='Times New Roman')
+
+    plt.xlim(city_data.index.min(), city_data.index.max())
+
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    plt.legend(by_label.values(), by_label.keys(), fontsize=18, frameon=False, prop={'family':'Times New Roman'})
+
+    plt.tight_layout()
+    plt.show()
 
 
